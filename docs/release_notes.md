@@ -17,8 +17,9 @@ submission manuscript.
 Before public release:
 
 - replace provisional citation metadata with the final paper DOI or preprint
-- create the GitHub repository and set its URL in `CITATION.cff`
 
 The source is licensed under the BSD 3-Clause License.
 The quick reproduction test passed from the final local repository location
 after the license and metadata update.
+The staging repository is hosted privately at
+<https://github.com/mglarson1/cavitation-fem>.

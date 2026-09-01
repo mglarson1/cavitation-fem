@@ -10,3 +10,5 @@ authors:
 version: 0.1.0
 date-released: 2026-09-01
 license: "BSD-3-Clause"
+url: "https://github.com/mglarson1/cavitation-fem"
+repository-code: "https://github.com/mglarson1/cavitation-fem"

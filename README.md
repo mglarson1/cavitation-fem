@@ -79,8 +79,9 @@ undamped Newton steps. See `docs/numerical_protocols.md` for details.
 
 ## Citation
 
-Use `CITATION.cff` for the software citation. Bibliographic details for the
-paper can be added there after publication.
+Use `CITATION.cff` for the software citation. The repository is hosted at
+<https://github.com/mglarson1/cavitation-fem>. Bibliographic details for the
+paper can be added after publication.
 
 ## License
 
