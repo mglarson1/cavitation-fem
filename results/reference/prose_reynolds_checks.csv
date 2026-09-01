@@ -1,0 +1,2 @@
+kkt_residual,load_norm,complementarity,max_gamma_relative_difference,gamma_iterations,gamma_active_match,pgs_sweeps,pgs_kkt_residual,pgs_inf_difference,pgs_active_match,pgs_energy_relative_difference,cavity_x_min,cavity_x_max,peak_x,unstable_gamma0_converged,unstable_gamma0_iterations,unstable_gamma0_pmin,unstable_gamma0_pmax
+1.22298005056365e-16,0.00942188586581007,1.70684306396996e-34,4.96762668687368e-16,8,1,1158,9.8670324048578e-14,3.68524655236513e-13,1,2.21366947555318e-16,0.03125,1.28125,1.9375,0,50,-0.119946742091609,0.114852016242825

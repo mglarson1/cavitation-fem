@@ -1,0 +1,10 @@
+.DS_Store
+*.asv
+*.m~
+*.fig
+figures/*.pdf
+figures/*.png
+matlab/results/*.csv
+!matlab/results/README.md
+*.mat
+*.log

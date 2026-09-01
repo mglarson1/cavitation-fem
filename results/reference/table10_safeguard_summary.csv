@@ -1,0 +1,2 @@
+total_cases,full_step_cases,backtracked_cases,min_backtracks,max_backtracks,max_peak_difference,max_cavity_difference
+48,44,4,7,9,4.71957051217942e-09,2.22044604925031e-16

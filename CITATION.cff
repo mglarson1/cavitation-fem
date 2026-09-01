@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the software and the accompanying manuscript."
+title: "Structure-preserving finite element methods for cavitation"
+type: software
+authors:
+  - family-names: Hansbo
+    given-names: Peter
+  - family-names: Larson
+    given-names: Mats G.
+version: 0.1.0
+date-released: 2026-09-01
+license: "BSD-3-Clause"

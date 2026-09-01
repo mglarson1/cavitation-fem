@@ -1,0 +1,2 @@
+active_iterations,newton_iterations,active_pmax,newton_pmax,active_cavity,newton_cavity,pressure_relative_difference,central_path_error
+9,9,3.52576347612266,3.52576347391337,4.812,4.812,6.81512284271435e-08,8.21365773784019e-11
