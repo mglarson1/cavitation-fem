@@ -34,33 +34,10 @@ check_close('Table 1 cavitated fractions',cavfrac, ...
     [0.231;0.311;0.353;0.383;0.398],6e-4,0);
 assert(max(abs(pmin))<1e-20)
 
-%% Table 2: manufactured obstacle solution
-invh=[16;32;64;128;256];n=numel(invh);
-l2=zeros(n,1);h1=zeros(n,1);iterations=zeros(n,1);
-for k=1:n
-    nx=2*invh(k);
-    [tri,x,y]=meshrect(2,1,nx,1);x=x-1;
-    dn=find(abs(x+1)<1e-12 | abs(x-1)<1e-12);
-    done=@(x,y) ones(size(x));
-    fman=@(x,y) (abs(x)<0.5).*(1-12*x.^2)+(abs(x)>=0.5).*(-2);
-    evalc('[P,~,info]=solvereynolds(tri,x,y,done,fman,1,dn);');
-    % The two traces carry equal and opposite diagonal-splitting errors.
-    % Their mean is the one-dimensional P1 solution reported in the paper.
-    [l2(k),h1(k)]=manufactured_line_errors(x,y,P);
-    iterations(k)=info.iterations;
-    assert(info.converged && info.signok)
-end
-rate_l2=[NaN;log(l2(1:end-1)./l2(2:end))/log(2)];
-rate_h1=[NaN;log(h1(1:end-1)./h1(2:end))/log(2)];
-table02=table(invh,l2,rate_l2,h1,rate_h1,iterations);
+%% Table 2: raw two-dimensional obstacle errors on shape-regular meshes
+% Previous averaged strip-profile source/results are retained in the archive.
+table02=verify_reynolds_2d_convergence(outdir);
 writetable(table02,fullfile(outdir,'table02_reynolds_convergence.csv'));
-check_close('Table 2 L2 errors',l2, ...
-    [3.15973508839871e-4;7.95505325765591e-5;1.99224101874956e-5; ...
-     4.98277541281653e-6;1.24582964642452e-6],2e-13,0);
-check_close('Table 2 H1 errors',h1, ...
-    [1.60112682978433e-2;8.05295334145291e-3;4.03238766517915e-3; ...
-     2.01693258581592e-3;1.00855863328477e-3],2e-13,0);
-check_close('Table 2 iteration counts',iterations,[6;9;16;30;57],0,0);
 
 %% Table 3: stability threshold
 refs3=(2:4)';n=numel(refs3);
@@ -118,29 +95,6 @@ check_close('Table 4 differences',difference, ...
 results=struct('table01',table01,'table02',table02, ...
     'table03',table03,'table04',table04);
 fprintf('Reproduced Tables 1--4 in %s\n',outdir)
-end
-
-function [l2,h1]=manufactured_line_errors(x,y,P)
-% Average the two traces of the one-element-wide strip, then integrate the
-% resulting piecewise-linear one-dimensional pressure to high accuracy.
-yval=unique(y);
-assert(numel(yval)==2)
-j0=find(abs(y-yval(1))<1e-12);j1=find(abs(y-yval(2))<1e-12);
-[xs,o0]=sort(x(j0));[xs1,o1]=sort(x(j1));
-assert(max(abs(xs-xs1))<1e-14)
-ps=0.5*(P(j0(o0))+P(j1(o1)));
-pex=@(z) (abs(z)<0.5).*(0.25-z.^2).^2;
-dpex=@(z) (abs(z)<0.5).*(-4*z.*(0.25-z.^2));
-l2sq=0;h1sq=0;
-for j=1:numel(xs)-1
-    a=xs(j);b=xs(j+1);slope=(ps(j+1)-ps(j))/(b-a);
-    ph=@(z) ps(j)+slope*(z-a);
-    l2sq=l2sq+integral(@(z) (pex(z)-ph(z)).^2,a,b, ...
-        'AbsTol',1e-18,'RelTol',1e-13);
-    h1sq=h1sq+integral(@(z) (dpex(z)-slope).^2,a,b, ...
-        'AbsTol',1e-18,'RelTol',1e-13);
-end
-l2=sqrt(l2sq);h1=sqrt(h1sq);
 end
 
 function [K,H]=reynolds_stability_matrices(tri,x,y,dfun,dxfun,dyfun)

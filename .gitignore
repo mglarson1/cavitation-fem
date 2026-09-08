@@ -4,7 +4,7 @@
 *.fig
 figures/*.pdf
 figures/*.png
-matlab/results/*.csv
+matlab/results/*
 !matlab/results/README.md
 *.mat
 *.log

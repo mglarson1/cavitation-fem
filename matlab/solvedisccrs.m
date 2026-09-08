@@ -42,6 +42,12 @@ function [ux,uy,p,info]=solvedisccrs(tri,xnod,ynod,gam,dind,dval,opts)
 %             .diredge  logical, one per edge: penalize this boundary edge
 %                       (Dirichlet part).  Default: every boundary edge whose
 %                       velocity dofs are all prescribed.
+%             .dirichlet_components optional nedge-by-2 logical mask: boundary
+%                       penalty on prescribed Cartesian components only.
+%             .load     optional assembled velocity load vector (default zero).
+%             .solver='qp' convex QP with checked working-set refinement.
+%             .qp_tolerance .kkt_tolerance apply to the QP branch.
+%             .reference_u .reference_p optional exact vectors for residual audit.
 %             .verbose
 
 if(nargin < 4 || isempty(gam)), gam=100; end
@@ -95,6 +101,14 @@ else
     isD=onbnd;
 end
 if(isfield(opts,'diredge') && ~isempty(opts.diredge)), isD=opts.diredge(:); end
+dircomp=repmat(isD,1,2);
+if(isfield(opts,'dirichlet_components'))
+    dircomp=logical(opts.dirichlet_components);
+    assert(isequal(size(dircomp),[nedge,2]));
+    prescomp=reshape(pres,2,[])';
+    assert(all(~dircomp(:)|prescomp(:)), ...
+        'Boundary penalty requires prescribed component means');
+end
 
 % ---------------- jump penalty ----------------
 % element areas adjacent to each edge, for h|_E = (|T+|+|T-|)/(2|E|)
@@ -113,7 +127,7 @@ end
 
 np=0;rp=zeros(nedge*2*16,1);cp=rp;vp=rp;
 for e=1:nedge
-    if(onbnd(e) && ~isD(e)), continue, end     % Neumann edge: no penalty
+    if(onbnd(e) && ~any(dircomp(e,:))), continue, end     % Neumann edge: no penalty
     A=eu(e,1);Bv=eu(e,2);
     dofs=[];coef=[];sgn=[1,-1];
     for side=1:cnt(e)
@@ -128,6 +142,7 @@ for e=1:nedge
     w=2*my*opts.gamma1*(elen(e)/3)/hE(e);
     blk=w*(coef'*coef);n=numel(dofs);
     for comp=0:1
+        if(onbnd(e) && ~dircomp(e,comp+1)), continue, end
         eqs=2*dofs-1+comp;
         [I,J]=ndgrid(eqs,eqs);
         rp(np+1:np+n*n)=I(:);cp(np+1:np+n*n)=J(:);vp(np+1:np+n*n)=blk(:);
@@ -149,10 +164,15 @@ end
 int=setdiff((1:neq)',ind);
 ee=(1:nele)';
 
-if(strcmp(opts.solver,'newton'))
+force=zeros(neqU,1);
+if(isfield(opts,'load')),force=opts.load(:);assert(numel(force)==neqU);end
+if(strcmp(opts.solver,'qp'))
+  [u,p,act,qpinfo]=solve_cavitation_qp(K,B,ar,ind,bcval,force,opts);
+  conv=qpinfo.converged;nit=qpinfo.iterations;
+elseif(strcmp(opts.solver,'newton'))
   s=opts.s;
   u=zeros(neqU,1);u(ind)=bcval;p=zeros(nele,1);
-  R=crresid(u,p,K,B,ar,gam,s);r0=max(norm(R(int)),1);nit=0;conv=false;
+  R=crresid(u,p,K,B,ar,gam,s,force);r0=max(norm(R(int)),1);nit=0;conv=false;
   for it=1:60
      nr=norm(R(int));
      if(nr<1e-10*r0), conv=true;nit=it-1;break, end
@@ -161,7 +181,7 @@ if(strcmp(opts.solver,'newton'))
      J=[K+(1/gam)*(B'*D*Mi*B), -B'*D; -D*B, spdiags(gam*ar.*(dph-1),0,nele,nele)];
      del=zeros(neq,1);del(int)=J(int,int)\(-R(int));
      u=u+del(1:neqU);p=p+del(neqU+1:end);
-     R=crresid(u,p,K,B,ar,gam,s);nit=it;
+     R=crresid(u,p,K,B,ar,gam,s,force);nit=it;
   end
   if(norm(R(int))<1e-10*r0), conv=true; end
   act=(gam*p-(B*u)./ar)>=0;
@@ -174,7 +194,7 @@ else
     actold=act;
     EA=sparse(ee(act),ee(act),1,nele,nele);EI=sparse(ee(~act),ee(~act),1,nele,nele);
     Smat=[K+(1/gam)*B'*EA*Mi*B, -B'*EA; -EA*B, -gam*EI*M];
-    f=zeros(neq,1);fr=f-Smat(:,ind)*bcval;
+    f=[force;zeros(nele,1)];fr=f-Smat(:,ind)*bcval;
     v=zeros(neq,1);v(ind)=bcval;v(int)=Smat(int,int)\fr(int);
     u=v(1:neqU);p=v(neqU+1:end);nit=it;
   end
@@ -189,6 +209,14 @@ info=struct('iterations',nit,'converged',conv,'gamma',gam, ...
    'div',D,'edges',eu,'xe',xe,'ye',ye,'area',ar,'onbnd',onbnd, ...
    'compl',max(abs(p.*D)),'signok',signok,'checktol',checktol, ...
    'pmin',min(p),'pmax',max(p),'ndof',neq);
+freeu=setdiff((1:neqU)',ind);
+info.stationarity=norm(K(freeu,:)*u-force(freeu)-B(:,freeu)'*p,inf);
+if(strcmp(opts.solver,'qp')),info.qp=qpinfo;end
+if(isfield(opts,'reference_u') && isfield(opts,'reference_p'))
+    info.reference_stationarity=norm(K(freeu,:)*opts.reference_u(:) ...
+        -force(freeu)-B(:,freeu)'*opts.reference_p(:),inf);
+    info.reference_divergence=norm(B*opts.reference_u(:)./ar,inf);
+end
 if(opts.verbose)
   fprintf(['solvedisccrs: %s, %d its (conv %d), gamma1 = %g, lamfac = %g\n' ...
      '   p in [%.4g, %.4g], min div u = %.3e, max|p*div u| = %.3e\n'], ...
@@ -203,7 +231,7 @@ q=-w>=0;phm(q)=-w(q)/2+r(q);phm(~q)=s./(r(~q)+w(~q)/2);
 dph=ph./(ph+phm);
 end
 
-function R=crresid(u,p,K,B,ar,gam,s)
+function R=crresid(u,p,K,B,ar,gam,s,force)
 w=gam*p-(B*u)./ar;[ph,~]=crsmax(w,s);lm=ph/gam;
-R=[K*u-B'*lm; gam*ar.*(lm-p)];
+R=[K*u-force-B'*lm; gam*ar.*(lm-p)];
 end

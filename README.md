@@ -1,88 +1,74 @@
 # Structure-preserving finite element methods for cavitation
 
-MATLAB implementation and reproducibility package for the manuscript
-*Structure-Preserving Augmented Lagrangian Finite Element Methods for
-Cavitation in Reynolds and Stokes Flows* by Peter Hansbo and Mats G. Larson.
+MATLAB implementation for *Structure-Preserving Augmented Lagrangian Finite
+Element Methods for Cavitation in Reynolds and Stokes Flows*, by Peter Hansbo
+and Mats G. Larson. This 0.2.0 review-stage snapshot accompanies the
+38-page manuscript revised on September 8, 2026, with Tables 1--14 and
+seven figures.
 
-The code implements nodal and multiplier-free Reynolds discretizations,
-stabilized Crouzeix--Raviart methods in two and three dimensions,
-Taylor--Hood comparison calculations, and an undamped smoothed Newton method.
-The regression drivers reproduce all ten manuscript tables and all seven
-vector figures without random inputs.
+The implementation includes nodal and multiplier-free Reynolds methods,
+jump-stabilized deviatoric Crouzeix--Raviart Stokes methods in two and three
+dimensions, Taylor--Hood and full-gradient comparisons, smoothed Newton,
+and checked unsmoothed quadratic-programming references.
 
-## Requirements
+## Requirements and commands
 
-- MATLAB R2020a or newer
-- MATLAB R2025a for the reference run committed here
+The reference environment is MATLAB R2025a. The original finite element
+solvers use base MATLAB. Optimization Toolbox (`quadprog`) is required for
+the QP verification and pressure-end studies, including `tables`, `full`,
+`verification`, `pressure-ends` and `certify`. Earlier MATLAB versions are
+not certified for this snapshot. No random numbers or external datasets
+are used.
 
-No additional MATLAB toolboxes are required by the numerical solvers.
-
-## Quick start
-
-From the repository root, run
+From the repository root:
 
 ```matlab
 addpath('matlab')
-reproduce('quick')
+reproduce('quick')          % Tables 1--6 and steep-pit mesh sensitivity
+reproduce('tables')         % Tables 1--14, including 48 Newton cases
+reproduce('figures')        % All seven figures
+reproduce('domain')         % Original end-location study, Table 12
+reproduce('pressure-ends')  % Couette calibration and fronts, Tables 13--14
+reproduce('verification')   % Raw 2D Reynolds, QP, smoothing and end checks
+reproduce('full')           % All tables and figures
+reproduce('certify')        % Tables plus prose and safeguard checks
 ```
 
-This checks Tables 1--6 and the quoted steep-pit mesh sensitivity. On the
-machine used for the reference run it takes about one minute.
+Generated data go to `matlab/results/`, which is ignored by Git. Reference
+CSV files are in `results/reference/`. Runtime and roundoff-level residuals
+can differ between runs; compare physical diagnostics and stated tolerances
+rather than demanding identical file bytes. Figure output goes to `figures/`;
+set `CAVITATION_FIGURE_DIR` to override that location. Full certification is
+expensive: it includes the original and safeguarded 48-case Newton matrices,
+three-dimensional solves and the new local/global refinement studies.
 
-The available modes are
+## Interpreting the results
 
-```matlab
-reproduce('quick')    % Tables 1--6
-reproduce('tables')   % Tables 1--10, including all 48 Newton cases
-reproduce('figures')  % all seven manuscript figures
-reproduce('full')     % all tables and figures
-reproduce('certify')  % tables plus prose-claim and safeguard audits
-```
+Tables 6--9 retain the original boundary conditions. Table 8 includes two
+explicitly unconverged full-gradient active-set rows; their last iterates
+are not accepted nonlinear solutions. Table 11 uses a checked unsmoothed
+QP reference to separate pressure error from cavity error. Small central-
+path products are not resolved in relative terms even when cavity samples
+agree with the reference.
 
-The archival table run is intentionally expensive. The 48-case Newton matrix
-dominates its runtime and took about 30 minutes on the reference machine.
-CSV files are written to `matlab/results`; figures are written to `figures`.
-Set the environment variable `CAVITATION_FIGURE_DIR` to choose another figure
-directory.
+Table 12 demonstrates end-location sensitivity with fixed local meshes and
+observation window. Tables 13--14 prescribe transverse velocity and normal
+traction at Stokes ends. These conditions reproduce exact flat Couette flow;
+under regular traces they impose the same ambient pressure as Reynolds.
+The resulting cavity comparison remains sensitive to domain ends and mesh
+alignment. An unchanged front on nested grids is not a free-boundary error
+estimate. This numerical boundary variant is distinct from the boundary
+spaces analyzed in the manuscript's original Stokes theorem.
 
-## Repository layout
+See `docs/numerical_protocols.md`, `docs/verification_summary.md`, and
+`docs/release_notes.md` for definitions, evidence and remaining limitations.
+The original annotated manuscript and exploratory scripts are not part of
+this curated code snapshot. MAT fields and dense profiles are regenerated
+by the drivers; only summary reference CSVs are committed.
 
-```text
-matlab/             solvers, mesh utilities, and reproduction drivers
-results/reference/  committed MATLAB R2025a reference CSV files
-figures/            generated vector figures (not committed by default)
-docs/               protocols, scope, and release notes
-```
+## Citation and license
 
-Each table driver contains numerical assertions against the committed values.
-The extraction rules that matter for discontinuous pressure fields and cavity
-lengths are documented in `docs/numerical_protocols.md`.
-The complete MATLAB R2025a run is summarized in
-`docs/verification_summary.md`.
-
-## Reproducibility status
-
-- Tables 1--10 pass their regression checks in MATLAB R2025a
-- all 48 smoothed-Newton cases converge in the documented undamped mode
-- all quantitative claims stated only in the manuscript prose pass their
-  dedicated regression checks
-- the safeguarded 48-case matrix reproduces the undamped peak pressures to
-  within `4.72e-9` and the cavity lengths to roundoff
-- Tables 6 and 10 use 8001 mid-plane samples on the stated interior window
-- the seven figure drivers generate vector PDF files
-- no random numbers or external data files are used
-
-The optional residual-decrease safeguard in `solvedisccrn.m` backtracks in
-four cases with `delta/r = 0.5` and `s = 1e-4`, but produces the same reported
-peak pressures and cavity lengths. The manuscript and reference matrix use
-undamped Newton steps. See `docs/numerical_protocols.md` for details.
-
-## Citation
-
-Use `CITATION.cff` for the software citation. The repository is hosted at
-<https://github.com/mglarson1/cavitation-fem>. Bibliographic details for the
-paper can be added after publication.
-
-## License
-
-The software is released under the BSD 3-Clause License. See `LICENSE`.
+Use `CITATION.cff` for software attribution. The review-stage repository is
+<https://github.com/mglarson1/cavitation-fem>; publication metadata can be
+added after acceptance. The code is distributed under the BSD 3-Clause
+License in `LICENSE`.

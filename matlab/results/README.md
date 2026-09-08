@@ -1,5 +1,5 @@
-# Generated table data
+# Generated outputs
 
-Reproduction commands write CSV files to this directory. The verified MATLAB
-R2025a outputs are committed separately under `results/reference` so a fresh
-run can be compared without overwriting the reference set.
+Reproduction commands write CSV, MAT and profile files here. They are ignored
+by Git. Committed reference summaries are in `../../results/reference/`.
+Each driver regenerates the MAT dependencies needed by subsequent audits.
