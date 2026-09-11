@@ -1,14 +1,18 @@
-# Reference summary data
+# Manuscript reference summaries
 
-These CSVs accompany the September 8, 2026 manuscript (Tables 1--14).
-Root CSVs contain the original studies and QP/smoothing verification;
-`domain_length_2026-09-08/` and `pressure_ends_2026-09-08/` contain the
-new end-location and front studies. The old Table 2 data are superseded by
-raw 2D errors; Git history preserves the earlier snapshot.
+These 52 CSV files accompany the September 10, 2026 manuscript (12 tables).
+See `../../matlab/README.md` for the current table-to-file mapping: legacy
+CSV filenames retain earlier table numbers.
 
-The `unstabilized` identifier in Table 8 means full-gradient CR without a
-jump penalty. Its two `converged=0` rows are last-iterate diagnostics.
-All current manuscript qualifications apply to these data. Timing and
-roundoff fields are recorded observations, not exact regression targets.
-Run the drivers to generate complete MAT fields and dense profiles under
-`matlab/results/`; see the root README and numerical protocols.
+The September 11 repository refresh updates Table 7's full-gradient sign-rule
+rows and Table 5's fine 3D row, and adds `solver_comparison.csv`,
+`model_comparison_pressure_normal_flow.csv`, `end_sensitivity.csv`,
+`prose_mechanical_pressure.csv` and `korn_constants.csv`.
+
+The supplied summaries are preserved rather than replaced with rerun timing
+or roundoff values. The Table 10 value 2.14714760459147 is retained faithfully;
+the manuscript prints 2.1472, one last-digit rounding discrepancy documented
+in the audit. No reference value was changed to silence a regression.
+
+Dense profiles, MAT fields and generated figures are not stored here.
+Reproduction drivers regenerate them under the documented output directories.

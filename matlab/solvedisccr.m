@@ -1,4 +1,4 @@
-function [ux,uy,p,info]=solvedisccr(tri,xnod,ynod,gam,dind,dval)
+function [ux,uy,p,info]=solvedisccr(tri,xnod,ynod,gam,dind,dval,tol)
 % Stokes flow with the cavitation constraint p >= 0, discretized with the
 % nonconforming Crouzeix--Raviart element for the velocity and piecewise
 % constants for the pressure.
@@ -40,6 +40,9 @@ function [ux,uy,p,info]=solvedisccr(tri,xnod,ynod,gam,dind,dval)
 %                     on the horizontal walls and a parabolic inflow on the
 %                     left, as in maintri.m.
 %        dval         (optional) the values prescribed at dind
+%        tol          (optional) sign rule: stop as soon as a frozen solution
+%                     has p >= -tol and div u >= -tol on every element.
+%                     Default []: stop when the active set repeats.
 %  out : ux,uy        velocity at the edge midpoints
 %        p            pressure, one value per element
 %        info         struct with diagnostics, including the edge list and
@@ -134,6 +137,10 @@ for iite=1:maxite
 
     nit=iite;pold=p;
     u=v(1:neqU);p=v(neqU+1:end);
+    if(nargin>=7 && ~isempty(tol) && iite>1)
+        Dk=(B*u)./ar;
+        if(min(p)>=-tol && min(Dk)>=-tol), converged=true; break; end
+    end
     if(iite==1), pcomp=norm(p); if(pcomp==0),pcomp=1;end; end
     pnorm=norm(pold-p)/pcomp;
     fprintf('  iter %2d : cavitated %5d/%5d elements, |dp|/|p1| = %.3e\n', ...

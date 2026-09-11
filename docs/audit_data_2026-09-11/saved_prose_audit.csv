@@ -1,0 +1,51 @@
+claim,computed,reported_or_bound,tolerance,passed
+deviatoric cavity count,492.0,492,0,True
+customary cavity count,676.0,676,0,True
+Deviatoric negative mechanical-pressure fraction,0.0,0,0,True
+Customary negative mechanical-pressure fraction,1.0,1,0,True
+Customary minimum mechanical pressure,-0.638318736595727,-0.64,0.005,True
+deviatoric sampled cavity length,0.843,0.843,0.0005,True
+customary sampled cavity length,1.314,1.314,0.0005,True
+Broken Korn lower bound 9,6.37421568070022,6.4,0.05,True
+Conforming Korn lower bound 9,6.81789963235363,6.8,0.05,True
+H10 quotient 9,1.98877886303122,1.989,0.0005,True
+Broken Korn lower bound 18,11.1433969700313,11.1,0.05,True
+Conforming Korn lower bound 18,10.8697467649288,10.9,0.05,True
+H10 quotient 18,1.99758347600562,1.998,0.0005,True
+Broken Korn lower bound 27,16.0719793124228,16.1,0.05,True
+Conforming Korn lower bound 27,14.3655656897092,14.4,0.05,True
+H10 quotient 27,1.9989675914865,1.999,0.0005,True
+Broken Korn lower bound 36,20.7317300826226,20.7,0.05,True
+Conforming Korn lower bound 36,17.2086449456277,17.2,0.05,True
+Edge energy share mesh 18,0.80885615939972,0.81,0.005,True
+Edge energy share mesh 36,0.647223919266355,0.65,0.005,True
+Sign-rule reference peak 2048,1.98695237809712,1.98695238,5e-09,True
+Sign-rule negative pressure 2048,7.09747538117081e-13,<= 1e-12,,True
+Sign-rule negative divergence 2048,3.69478859480005e-15,<= 1e-12,,True
+Sign-rule reference peak 8192,2.09338475688002,2.09338476,5e-09,True
+Sign-rule negative pressure 8192,5.88459661577667e-15,<= 1e-12,,True
+Sign-rule negative divergence 8192,8.32205254804117e-15,<= 1e-12,,True
+Inlet-only traction-free cavity increase percent,44.48398576512456,44,1,True
+Old-end cavity ratio,7.377224199288257,7.4,0.05,True
+Pressure-end inlet-only sampled-front difference,0.0,0,1e-12,True
+Nested Reynolds front error,0.009270000000000111,0.0093,0.0001,True
+Shifted Reynolds front error,0.002354999999999885,0.0024,0.0001,True
+Stokes shifted-grid front displacement,0.011624999999999996,0.0116,0.0001,True
+Fine Stokes upstream displacement nested,0.15460499999999988,0.155,0.0005,True
+Fine Stokes upstream displacement shifted,0.14297999999999988,0.143,0.0005,True
+3D complementarity coarse,1.68363130106133e-14,<= 1.7e-14,,True
+3D complementarity fine,1.44344669456648e-13,<= 1.45e-13,,True
+QP cavity 2048/1e-10/1e-10,5.937,5.937,1e-12,True
+QP cavity 2048/1e-10/1e-12,5.937,5.937,1e-12,True
+QP cavity 2048/1e-10/1e-14,5.937,5.937,1e-12,True
+QP cavity 2048/1e-12/1e-10,5.937,5.937,1e-12,True
+QP cavity 2048/1e-12/1e-12,5.937,5.937,1e-12,True
+QP cavity 2048/1e-12/1e-14,5.937,5.937,1e-12,True
+QP cavity 8192/1e-10/1e-10,5.937,5.937,1e-12,True
+QP cavity 8192/1e-10/1e-12,5.937,5.937,1e-12,True
+QP cavity 8192/1e-10/1e-14,5.937,5.937,1e-12,True
+QP cavity 8192/1e-12/1e-10,5.937,5.937,1e-12,True
+QP cavity 8192/1e-12/1e-12,5.937,5.937,1e-12,True
+QP cavity 8192/1e-12/1e-14,5.937,5.937,1e-12,True
+Small-s sampled cavity 1e-18,5.937,5.937,1e-12,True
+Small-s sampled cavity 1e-20,5.937,5.937,1e-12,True

@@ -1,115 +1,46 @@
-# Numerical protocols
+# Numerical protocols -- September 10 manuscript
 
-This file records conventions that are easy to lose when a pressure field is
-discontinuous or a cavity is represented by an active set.
+The authoritative table/driver/CSV mapping is in `matlab/README.md`. The
+manuscript now has 12 tables; the previous 14-table arrangement is historical.
 
-## Reynolds verification
+- Tables 1--3 retain the nodal mixed Reynolds, raw two-dimensional manufactured
+  solution, and multiplier-free stabilized comparison. The stability
+  eigenvalues formerly in Table 3 now appear in Section 5.3.
+- Table 4 retains the 2D jump-stabilized deviatoric Stokes channel. Its sampled
+  pressure uses the upper trace at longitudinal cell centers with x < 2.5.
+- Table 5 adds the 36x12x12 tetrahedral grid. `solvedisccrs3_ip` assembles the
+  same forms as the direct solver and uses iterated penalty solves with r=1e4
+  and nested-dissection Cholesky factors. The pressure peak is over a one-cell
+  tube, not the offset line used by Figure 5.
+- Table 6 compares constitutive laws with Taylor--Hood. The separate mechanical
+  pressure check uses stabilized CR, so its cavity counts and lengths are
+  not the Table 6 values. Mechanical pressure is p-(2/3+lamfac)*div(u), mu=1.
+- Table 7 applies a sign tolerance of 1e-12 to full-gradient CR only on the
+  two finer meshes. The coarse full-gradient row retains repeated-set
+  stopping. Table 11 applies the sign rule on all three meshes, explaining
+  eight versus nine iterations for the same coarse problem.
+- Tables 8--10 use pressure-normal-flow ends: prescribed transverse velocity
+  face means and free normal means, with penalty on the prescribed component.
+  The comparison uses a fixed 4 < x < 20 window, step 0.000375 and the upper
+  Stokes mid-plane trace. Reynolds intervals are cavitated when both endpoint
+  nodes are active; Stokes samples use the inactive pressure set. Fronts are
+  the rightmost cavitated sample relative to x=12; these are sampled fronts,
+  not exact interfaces. Table 10 retains traction-free comparisons separately.
+- Table 11's smoothed Newton runs use s=1e-8 and residual tolerance 1e-10.
+  Table 12 instead uses residual tolerance 1e-14; this explains the differing
+  iteration counts. Its pressure error uses an element-area weighted norm
+  against the independently assembled QP reference. Small central-path
+  products are not resolved in relative terms even when sampled cavities agree.
+- The Korn experiment assembles discontinuous P1 trace-free strain and full
+  jump energies on the stated box and walls/inflow boundary subset. Its
+  finite-grid eigenvalues are lower bounds on the relevant constants.
 
-Table 1 reports active-node fractions. Table 2 now uses the raw two-dimensional
-finite element errors on uniformly refined square meshes of (-1,1)^2,
-with P=(1/4-x^2-y^2)_+^2 and f=max(2-16(x^2+y^2),-2). The circular free
-boundary is unfitted. Error quadrature uses a Duffy transformation and
-additional refinement near the circle; six- and ten-point rules check
-integration sensitivity. The measured rates are first order for the
-H1 seminorm and approximately second order for L2. Only the H1 estimate
-is proved. The old averaged strip-profile experiment is superseded.
-Table 3 detects quadratic Dirichlet nodes from boundary-edge topology.
+Figures 3, 5, 6 and 7 were updated. Figure 7 averages CR vertex evaluations
+for visualization and draws an interpolated zero-velocity contour; this
+postprocessing is not used for the pressure/cavity table diagnostics.
+Reversed flow was independently confirmed in the raw CR field by the audit.
+Figure 5 samples at y=z=0.501, avoiding the mesh-aligned trace ambiguity.
 
-## Two-dimensional channel
-
-The CR/P0 pressure in Table 5 has two traces on the mesh-aligned centerline.
-The reported pressure is the upper trace sampled at longitudinal cell centers
-for `x < 2.5`. The cavity fraction is the exact fraction of inactive elements
-by area.
-
-## Common-pit comparison
-
-Tables 6--8 use 8001 uniformly spaced physical mid-plane samples on
-`0 <= x <= 24` and retain only `4 < x < 20`. Reynolds intervals are
-cavitated when both endpoint nodes are active. CR/P0 Stokes samples are
-cavitated when their containing elements are inactive. Taylor--Hood samples
-use the threshold `p <= 1e-8` because complementarity is weak in that space.
-
-The steep-pit mesh ratios compare every Stokes mesh with the fixed Table 6
-Reynolds cavity length `6.219`, exactly as stated in the manuscript.
-
-## Three-dimensional pressure
-
-The CR/P0 pressure in Table 9 has no unique value on the mesh-aligned line
-`y = z = 0.5`. The peak is the maximum over the one-cell tube surrounding
-that line, restricted to `x < 2.5`. The cavity fraction is computed by
-tetrahedral volume; these structured meshes have uniform volumes.
-
-## Smoothed Newton method
-
-Table 10 uses the central-path cavity criterion
-`p < sqrt(s/gamma)` and 8001 mid-plane samples on `4 < x < 20`. The complete
-matrix contains four meshes, six values of `s`, and both pits with
-`delta/r = 0.5` and `1`, for 48 cases.
-
-The reference calculations use undamped Newton steps from the prescribed
-boundary velocity and zero pressure. All 48 converge. The optional
-residual-decrease safeguard accepts full steps in 44 cases. In the four
-`delta/r = 0.5`, `s = 1e-4` cases it uses seven to nine backtracks, while the
-windowed peak differs from the undamped result by at most `4.8e-9` and the
-reported cavity length is unchanged. The stopping rule controls the assembled, area-weighted residual, not the
-relative central-path product error. Absolute product defects and sign minima
-are recorded explicitly. At the smallest smoothing levels the target product
-is below the measured absolute error; relative resolution is not claimed.
-
-## Unsmoothed QP reference and smoothing (Table 11)
-
-`solve_stokes_qp_reference` independently assembles the full-gradient CR
-velocity energy with nonnegative integrated element divergence. After
-`quadprog`, equality-constrained working-set polishing checks stationarity,
-pressure and divergence signs, and complementarity. The accepted outputs
-are the returned fields and the `polished_*` diagnostics; unprefixed scalar
-residual fields refer to the initial QP estimate. `verify_stokes_qp_reference`
-runs twelve QP/sign-tolerance combinations on 2048 and 8192 elements.
-`verify_smoothing_against_qp` first needs the MAT reference generated by that
-driver. It computes element-area-weighted pressure errors, energy errors,
-signs and sampled cavity-set mismatch. The common 0.003 sampling step and
-4<x<20 window remain fixed.
-
-## Original domain extension (Table 12)
-
-`reproduce_domain_length` uses [0,24], [-12,24], [0,36], [-12,36] and
-[-36,60], retaining pit centre x=12, longitudinal step 24/256, 16 Stokes
-layers and Reynolds strip width 4*(24/256). The local triangle coordinates
-and observation window 4<x<20 are unchanged. `audit_domain_length_results`
-checks the saved fields and combines the table. Reynolds cavitation meets
-the left window edge, so reported lengths are truncated observations.
-Zero Stokes length means no mid-plane cavity sample inside this window.
-
-## Pressure-compatible ends and front refinement (Tables 13--14)
-
-`reproduce_pressure_ends` runs four flat-channel checks (128x8 and 256x16,
-ambient pressure 0 and 1), three symmetric domain cases, two local
-refinements, a global refinement, a half-cell grid shift, and a tighter
-working-set tolerance repeat. `reynolds_pit_front_reference` independently
-integrates the one-dimensional Reynolds free-boundary equation.
-
-At vertical Stokes ends, transverse CR face means are zero and normal
-traction is prescribed. The boundary penalty acts only on the prescribed
-component; normal face means are free. Wall/interior penalties are unchanged.
-The optional `dirichlet_components`, `load` and `solver='qp'` arguments in
-`solvedisccrs` implement this variant; omitted options retain old defaults.
-`solve_cavitation_qp` reports final polished diagnostics in its `info`
-structure (unlike the independent reference helper's initial-QP fields).
-
-Sampling uses dx=0.000375 in 4<x<20. Stokes takes the upper mid-plane trace
-with vertical offset 1e-10; lower-trace fronts are checked. Cavity membership
-uses the accepted active set. Reynolds marks an interval only when both
-endpoint nodes are cavitated. The rightmost cavitated sample minus 12 is
-the reformation-front coordinate. The next-sample bracket is a sampling
-bracket, not a discretization error estimate.
-
-Local refinement halves h_x in 6<=x<=18 and doubles transverse layers twice;
-outer longitudinal spacing remains fixed. A globally refined control uses
-the same central grid; a shifted local control moves that grid by half a
-cell. `audit_pressure_end_results` verifies all eight accepted pit cases,
-flat errors, matching domain meshes, trace fronts, the tighter tolerance,
-and independent Reynolds references. Its input MAT files and dense profiles
-are regenerated by the reproduction driver. Nonempty observed cavities
-meet the left window edge. The fine-grid front difference is a finite-box
-result with measured grid sensitivity, not a universal model discrepancy.
+Legacy default-stopping diagnostics and the original 48-case matrix are
+retained. Repeated-set nonconvergence in those checks is distinct from the
+new sign-rule solutions reported in Tables 7 and 11.

@@ -1,4 +1,5 @@
-% pitfield.pdf: the Stokes solution near the steepest pit, delta/r = 1.
+% pitfieldends.pdf (Figure 7): the Stokes solution near the steepest pit,
+% delta/r = 1, with pressure-normal-flow ends (requires Optimization Toolbox).
 % Above, the horizontal velocity with the contour u_x = 0 bounding the
 % reversed flow in the pit; below, the pressure.  The cavitated elements are
 % lightened in both.  The pit is a depression in the stationary surface
@@ -26,13 +27,19 @@ E=[tri(:,[2,3]);tri(:,[1,3]);tri(:,[1,2])];
 [eu,~,ic]=unique(sort(E,2),'rows');onb=(accumarray(ic,1)==1);
 flat=find(onb & abs(zh(eu(:,1)))<1e-9   & abs(zh(eu(:,2)))<1e-9);   % sliding
 shap=find(onb & abs(zh(eu(:,1))-1)<1e-9 & abs(zh(eu(:,2))-1)<1e-9); % stationary
-dind=[2*flat-1;2*flat;2*shap-1;2*shap];
+% pressure-normal-flow ends: transverse velocity prescribed, normal free
+ends=find(onb & ((abs(xh(eu(:,1)))<1e-9 & abs(xh(eu(:,2)))<1e-9) | ...
+    (abs(xh(eu(:,1))-L)<1e-9 & abs(xh(eu(:,2))-L)<1e-9)));
+dind=[2*flat-1;2*flat;2*shap-1;2*shap;2*ends];
 dval=[V*ones(numel(flat),1);zeros(numel(flat),1); ...
-      zeros(numel(shap),1);zeros(numel(shap),1)];
-
+      zeros(numel(shap),1);zeros(numel(shap),1);zeros(numel(ends),1)];
+dc=false(size(eu,1),2);dc([flat;shap],:)=true;dc(ends,2)=true;
+opCR=struct('gamma1',1,'lamfac',-2/3,'verbose',0,'solver','qp', ...
+    'dirichlet_components',dc,'kkt_tolerance',1e-11);
 [ux,uy,p,info]=solvedisccrs(tri,xm,zm,gam,dind,dval,opCR);
-fprintf('%d elements, %d iterations, p in [%.4g %.4g], %d cavitated\n', ...
-    size(tri,1),info.iterations,min(p),max(p),info.ncav);
+info.ncav=nnz(~info.act);
+fprintf('%d elements, p in [%.4g %.4g], %d cavitated\n', ...
+    size(tri,1),min(p),max(p),info.ncav);
 
 % ---- CR velocity at the vertices, averaged over the adjoining elements ----
 edg=reshape(ic,size(tri,1),3);
@@ -117,6 +124,6 @@ text(0.012,0.84,'{\itp}','Units','normalized','FontSize',9,'Color','k')
 set(findall(gcf,'-property','FontName'),'FontName','Times New Roman')
 
 outdir=figure_output_dir(here);
-exportgraphics(gcf,fullfile(outdir,'pitfield.pdf'), ...
+exportgraphics(gcf,fullfile(outdir,'pitfieldends.pdf'), ...
     'ContentType','vector','BackgroundColor','white')
-fprintf('wrote %s\n',fullfile(outdir,'pitfield.pdf'));
+fprintf('wrote %s\n',fullfile(outdir,'pitfieldends.pdf'));

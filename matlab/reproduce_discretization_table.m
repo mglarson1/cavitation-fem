@@ -1,5 +1,8 @@
 function table08 = reproduce_discretization_table(outdir)
-% Reproduce manuscript Table 8: three Stokes discretizations.
+% Reproduce manuscript Table 7: three Stokes discretizations.  Full-gradient
+% CR on the two finer meshes is stopped by the sign rule (tol = 1e-12);
+% there the active set changes only by elements with pressure and
+% divergence at rounding level and never repeats.
 
 if(nargin<1 || isempty(outdir)), outdir=fullfile(pwd,'results'); end
 if(~exist(outdir,'dir')), mkdir(outdir); end
@@ -21,7 +24,8 @@ for k=1:n
     pmax(j)=mP.peak;cavity(j)=mP.cavity;pmin(j)=iP.pmin;
     complementarity(j)=iP.compl;
 
-    evalc('[~,~,pU,iU]=solvedisccr(tri,xm,zm,100,dind,dval);');
+    tolU=[];if(k>1), tolU=1e-12; end
+    evalc('[~,~,pU,iU]=solvedisccr(tri,xm,zm,100,dind,dval,tolU);');
     mU=cr_metrics(tri,xm,zm,pU,iU,Hf);
     j=j+1;
     [mesh_nx(j),mesh_nz(j),method{j}]=deal(nx(k),nz(k),methods{2});
@@ -41,20 +45,20 @@ table08=table(mesh_nx,mesh_nz,method,ndof,iterations,converged,pmax, ...
     cavity,pmin,complementarity);
 writetable(table08,fullfile(outdir,'table08_discretization_comparison.csv'));
 
-check_close('Table 8 degrees of freedom',ndof, ...
+check_close('Table 7 degrees of freedom',ndof, ...
     [8464;8464;9899;33312;33312;38227;132160;132160;150179],0,0);
-check_close('Table 8 proposed iterations',iterations(1:3:end),[8;9;10],0,0);
-check_close('Table 8 Taylor--Hood iterations',iterations(3:3:end),[12;13;15],0,0);
+check_close('Table 7 proposed iterations',iterations(1:3:end),[8;9;10],0,0);
+check_close('Table 7 Taylor--Hood iterations',iterations(3:3:end),[12;13;15],0,0);
 assert(converged(2) && iterations(2)==9)
-assert(all(~converged([5,8])) && all(iterations([5,8])==100))
-check_close('Table 8 peak pressures',pmax, ...
+assert(all(converged([5,8])) && all(iterations([5,8])==9))
+check_close('Table 7 peak pressures',pmax, ...
     [2.1537;1.9870;2.1556;2.1473;2.0934;2.1466;2.1451;2.1239;2.1452],6e-5,0);
-check_close('Table 8 cavity lengths',cavity, ...
+check_close('Table 7 cavity lengths',cavity, ...
     [0.750;5.937;0.447;0.843;5.937;0.498;0.798;5.889;0.690],2e-4,0);
-check_close('Table 8 Taylor--Hood undershoots',pmin(3:3:end), ...
+check_close('Table 7 Taylor--Hood undershoots',pmin(3:3:end), ...
     [-5.3e-4;-2.8e-4;-1.8e-4],6e-5,0);
 assert(max(complementarity(1:3:end))<5e-13)
-fprintf('Reproduced Table 8 in %s\n',outdir)
+fprintf('Reproduced Table 7 in %s\n',outdir)
 end
 
 function [tri,xh,zh,xm,zm,dind,dval,Hf]=pit_cr_mesh(nx,nz)

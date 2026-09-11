@@ -45,7 +45,7 @@ h2=plot(xb,pb,'r--','LineWidth',1.1);
 plot([0 3],[0 0],'k:','LineWidth',0.5)
 xlim([0 3]),ylim([-0.004 0.048])
 xlabel('{\itx}'),ylabel('{\itP_h}')
-legend([h1 h2 hp],{'mixed, {\itk} = 1','stabilized, {\itk} = 2', ...
+legend([h1 h2 hp],{'mixed, {\itk} = 1','stabilised, {\itk} = 2', ...
     'pit profile (scaled)'},'Location','NorthWest','Box','off','FontSize',8)
 set(ax,'FontSize',8,'Layer','top')
 set(findall(gcf,'-property','FontName'),'FontName','Times New Roman')
